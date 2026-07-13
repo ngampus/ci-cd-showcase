@@ -1,0 +1,86 @@
+# GitLab CI/CD Pipeline
+
+stages:
+  - lint
+  - test
+  - security
+  - build
+  - deploy-staging
+  - deploy-production
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: "/certs"
+  REGISTRY: $CI_REGISTRY
+  IMAGE: $CI_REGISTRY_IMAGE
+  VERSION: $CI_COMMIT_SHORT_SHA
+
+before_script:
+  - docker info
+
+lint:
+  stage: lint
+  image: golang:1.22
+  script:
+    - go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+    - golangci-lint run ./...
+  allow_failure: false
+
+test:
+  stage: test
+  image: golang:1.22
+  script:
+    - go test ./... -v -race -coverprofile=coverage.out
+  coverage: '/total:\s+(\d+\.\d+)%/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.xml
+    when: always
+
+security:
+  stage: security
+  image: aquasec/trivy:latest
+  script:
+    - trivy fs --scanners vuln,secret,config --severity HIGH,CRITICAL --format sarif --output trivy.sarif .
+  artifacts:
+    reports:
+      sast: trivy.sarif
+    when: always
+
+build:
+  stage: build
+  image: docker:24
+  services:
+    - docker:24-dind
+  script:
+    - docker build -t $IMAGE:$VERSION .
+    - docker push $IMAGE:$VERSION
+  only:
+    - main
+    - tags
+
+deploy-staging:
+  stage: deploy-staging
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply -f k8s/staging/
+  environment:
+    name: staging
+    url: https://staging.example.com
+  only:
+    - main
+  when: manual
+
+deploy-production:
+  stage: deploy-production
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl apply -f k8s/prod/
+  environment:
+    name: production
+    url: https://example.com
+  only:
+    - tags
+  when: manual
