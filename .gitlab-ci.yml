@@ -63,24 +63,30 @@ build:
 
 deploy-staging:
   stage: deploy-staging
-  image: bitnami/kubectl:latest
+  image: node:22
   script:
-    - kubectl apply -f k8s/staging/
+    - npx wrangler deploy --name ci-cd-showcase
   environment:
     name: staging
-    url: https://staging.example.com
+    url: https://showcase.letssee.my.id
   only:
     - main
   when: manual
+  variables:
+    CLOUDFLARE_API_TOKEN: $CLOUDFLARE_API_TOKEN
+    CLOUDFLARE_ACCOUNT_ID: $CLOUDFLARE_ACCOUNT_ID
 
 deploy-production:
   stage: deploy-production
-  image: bitnami/kubectl:latest
+  image: node:22
   script:
-    - kubectl apply -f k8s/prod/
+    - npx wrangler deploy --name ci-cd-showcase --env production
   environment:
     name: production
-    url: https://example.com
+    url: https://showcase.letssee.my.id
   only:
     - tags
   when: manual
+  variables:
+    CLOUDFLARE_API_TOKEN: $CLOUDFLARE_API_TOKEN
+    CLOUDFLARE_ACCOUNT_ID: $CLOUDFLARE_ACCOUNT_ID

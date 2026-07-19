@@ -105,37 +105,35 @@ pipeline {
         }
         
         stage('Deploy Staging') {
-            agent { label 'kubernetes' }
+            agent { label 'cloudflare' }
             when {
                 branch 'main'
             }
             input {
-                message 'Deploy to Staging?'
+                message 'Deploy to Cloudflare Workers Staging?'
                 ok 'Deploy'
             }
             steps {
-                sh '''
-                    kubectl apply -f k8s/staging/
-                    kubectl rollout status deployment/ci-cd-showcase -n staging --timeout=300s
-                '''
+                withEnv(['CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID']) {
+                    sh 'npx wrangler deploy --name ci-cd-showcase'
+                }
             }
         }
         
         stage('Deploy Production') {
-            agent { label 'kubernetes' }
+            agent { label 'cloudflare' }
             when {
                 tag 'v*'
             }
             input {
-                message 'Deploy to Production?'
+                message 'Deploy to Cloudflare Workers Production?'
                 ok 'Deploy'
                 submitter 'ngampus,platform-team'
             }
             steps {
-                sh '''
-                    kubectl apply -f k8s/prod/
-                    kubectl rollout status deployment/ci-cd-showcase -n production --timeout=300s
-                '''
+                withEnv(['CLOUDFLARE_API_TOKEN', 'CLOUDFLARE_ACCOUNT_ID']) {
+                    sh 'npx wrangler deploy --name ci-cd-showcase --env production'
+                }
             }
         }
     }

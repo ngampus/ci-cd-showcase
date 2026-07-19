@@ -1,5 +1,7 @@
 # CI/CD Showcase
 
+[![Live Demo](https://img.shields.io/badge/demo-showcase.letssee.my.id-00C7B7?style=for-the-badge&logo=cloudflare&logoColor=white)](https://showcase.letssee.my.id)
+
 Multi-platform CI/CD pipeline comparison: GitHub Actions, GitLab CI, and Jenkins.
 
 ## Overview
@@ -65,15 +67,23 @@ docker run -p 8080:8080 ghcr.io/ngampus/ci-cd-showcase:latest
 
 ## Deployment
 
+### Cloudflare Workers (Live)
+The application is deployed as a [Cloudflare Worker](https://workers.cloudflare.com/) at:
+
+- **URL**: [https://showcase.letssee.my.id](https://showcase.letssee.my.id)
+- **Health**: [https://showcase.letssee.my.id/healthz](https://showcase.letssee.my.id/healthz)
+- **Source**: [`src/worker.ts`](src/worker.ts)
+- **Config**: [`wrangler.toml`](wrangler.toml)
+
 ### Staging
 - Trigger: Push to `main` branch
 - Approval: Manual
-- Environment: `staging`
+- Target: Cloudflare Workers (edge)
 
 ### Production
 - Trigger: Git tag `v*`
 - Approval: Manual (with submitter restrictions)
-- Environment: `production`
+- Target: Cloudflare Workers `--env production`
 
 ## Security
 
@@ -97,6 +107,8 @@ make sbom
 
 ## Links
 
+- **Live Demo**: [https://showcase.letssee.my.id](https://showcase.letssee.my.id)
 - [GitHub Actions Workflow](.github/workflows/ci.yml)
 - [GitLab CI Pipeline](.gitlab-ci.yml)
 - [Jenkins Pipeline](Jenkinsfile)
+- [Cloudflare Worker Source](src/worker.ts)

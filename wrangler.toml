@@ -1,0 +1,10 @@
+name = "ci-cd-showcase"
+main = "src/worker.ts"
+compatibility_date = "2026-07-18"
+
+workers_dev = false
+route = { pattern = "showcase.letssee.my.id/*", zone_name = "letssee.my.id" }
+
+[env]
+[env.production]
+vars = { VERSION = "production" }
